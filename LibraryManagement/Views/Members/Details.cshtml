@@ -1,0 +1,140 @@
+@model LibraryManagement.Models.ViewModels.Members.MemberDetailsViewModel
+@{
+    ViewData["Title"] = "پرونده عضو - " + Model.FullName;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">پرونده و سوابق عضویت</h3>
+        <p class="text-muted small mb-0">شناسه پرونده: @Model.Id • عضو رسمی کتابخانه</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">ویرایش مشخصات</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">بازگشت به فهرست</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- ستون مشخصات هویتی و وضعیت -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4 text-center">
+                <div class="display-6 mb-2">👤</div>
+                <h4 class="fw-bold text-dark mb-1">@Model.FullName</h4>
+                <div class="mb-3">
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1">
+                            عضویت فعال
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-1">
+                            عضویت غیرفعال
+                        </span>
+                    }
+                </div>
+
+                <div class="p-3 bg-light rounded text-start small space-y-2" dir="rtl">
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted">کد ملی:</span>
+                        <strong class="font-monospace" dir="ltr">@Model.NationalCode</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted">شماره تماس:</span>
+                        <strong class="font-monospace" dir="ltr">@Model.Phone</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted">ایمیل:</span>
+                        <span class="font-monospace" dir="ltr">@(string.IsNullOrWhiteSpace(Model.Email) ? "—" : Model.Email)</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span class="text-muted">تاریخ عضویت:</span>
+                        <span>@Model.RegisterDate.ToLocalTime().ToString("yyyy/MM/dd")</span>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.Address))
+                {
+                    <div class="text-start mt-3 small">
+                        <span class="text-muted fw-semibold">نشانی:</span>
+                        <p class="text-muted mt-1 mb-0">@Model.Address</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 p-4 text-center">
+            <h6 class="fw-bold mb-1">کتاب‌های در دست امانت</h6>
+            <div class="display-5 fw-bold my-2">@Model.ActiveLoansCount</div>
+            <span class="small text-muted">تعداد کتاب‌های جاری تسویه‌نشده</span>
+        </div>
+    </div>
+
+    <!-- ستون تاریخچه امانت‌ها -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0 text-dark">تاریخچه گردش امانت و تحویل کتاب</h6>
+                <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                    @Model.LoansHistory.Count رکورد امانت
+                </span>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.LoansHistory.Any())
+                {
+                    <div class="text-center py-5 text-muted small">
+                        این عضو تاکنون هیچ کتابی به امانت نگرفته است.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light small">
+                                <tr>
+                                    <th>عنوان کتاب</th>
+                                    <th>تاریخ امانت</th>
+                                    <th>موعد سررسید</th>
+                                    <th>تاریخ بازگشت</th>
+                                    <th class="text-center">وضعیت</th>
+                                </tr>
+                            </thead>
+                            <tbody class="small">
+                                @foreach (var loan in Model.LoansHistory)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold text-dark">@loan.Book?.Title</div>
+                                            <div class="text-muted font-monospace" style="font-size: 11px;" dir="ltr">ISBN: @loan.Book?.ISBN</div>
+                                        </td>
+                                        <td>@loan.LoanDate.ToLocalTime().ToString("yyyy/MM/dd")</td>
+                                        <td>@loan.DueDate.ToLocalTime().ToString("yyyy/MM/dd")</td>
+                                        <td>
+                                            @(loan.ReturnDate.HasValue ? loan.ReturnDate.Value.ToLocalTime().ToString("yyyy/MM/dd") : "—")
+                                        </td>
+                                        <td class="text-center">
+                                            @if (loan.Status == LibraryManagement.Models.Entities.LoanStatus.Active)
+                                            {
+                                                <span class="badge bg-warning text-dark">در دست امانت</span>
+                                            }
+                                            else if (loan.Status == LibraryManagement.Models.Entities.LoanStatus.Returned)
+                                            {
+                                                <span class="badge bg-success">عودت داده شده</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">دارای دیرکرد</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

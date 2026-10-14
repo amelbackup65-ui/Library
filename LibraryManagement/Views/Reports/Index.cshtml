@@ -1,0 +1,224 @@
+@model LibraryManagement.Services.Interfaces.LibraryReportDto
+@{
+    ViewData["Title"] = "گزارشات و آمارهای تحلیلی کتابخانه";
+}
+
+<div class="container-fluid py-2">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 fw-bold text-dark mb-1">گزارشات آماری و تحلیلی</h1>
+            <p class="text-muted small mb-0">تحلیل جامع گردش کتب، رتبه‌بندی اعضای فعال و محاسبه تخمینی جرائم دیرکرد</p>
+        </div>
+        <div>
+            <a asp-controller="Reports" asp-action="ExportLoansCsv" class="btn btn-success d-flex align-items-center gap-1 shadow-sm">
+                <span>📥</span>
+                <span>دریافت خروجی Excel (CSV)</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Executive KPI Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+                <span class="text-muted small">کل گردش‌های ثبت‌شده</span>
+                <div class="fs-2 fw-bold text-dark">
+                    @((Model.ActiveLoansCount + Model.TotalCompletedLoansCount + Model.OverdueLoansCount).ToString("N0"))
+                </div>
+                <div class="small text-muted">شامل @Model.TotalCompletedLoansCount مورد تحویل‌شده</div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+                <span class="text-muted small">نسخه‌های در دست اعضا</span>
+                <div class="fs-2 fw-bold text-primary">@Model.ActiveLoansCount.ToString("N0")</div>
+                <div class="small text-muted">امانت‌های فعال جاری</div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+                <span class="text-muted small">موارد دارای تاخیر سررسید</span>
+                <div class="fs-2 fw-bold text-danger">@Model.OverdueLoansCount.ToString("N0")</div>
+                <div class="small text-muted">نیاز به پیگیری و تماس</div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+                <span class="text-muted small">مجموع جرائم تخمینی دیرکرد</span>
+                <div class="fs-2 fw-bold text-warning">@Model.EstimatedTotalFines.ToString("N0")</div>
+                <div class="small text-muted">تومان (بر مبنای ۵,۰۰۰ تومان روزانه)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts & Tables Row -->
+    <div class="row g-4 mb-4">
+        <!-- Top 5 Most Borrowed Books -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3 h-100">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="card-title fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                        <span>🔥</span>
+                        <span>محبوب‌ترین و پرامانت‌ترین کتاب‌ها</span>
+                    </h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th>عنوان کتاب</th>
+                                <th>دسته‌بندی</th>
+                                <th class="text-center">دفعات امانت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.TopBooks.Any())
+                            {
+                                int rank = 1;
+                                foreach (var book in Model.TopBooks)
+                                {
+                                    <tr>
+                                        <td class="fw-bold text-muted">@(rank++)</td>
+                                        <td>
+                                            <div class="fw-semibold text-dark">@book.Title</div>
+                                            <div class="small text-muted font-monospace">@book.ISBN</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">@book.CategoryName</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary rounded-pill px-3 py-1 fs-6">
+                                                @book.BorrowCount
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        داده‌ای برای نمایش وجود ندارد.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top 5 Active Members -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3 h-100">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="card-title fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                        <span>⭐</span>
+                        <span>فعال‌ترین اعضای کتابخانه</span>
+                    </h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th>نام عضو</th>
+                                <th>شماره تماس</th>
+                                <th class="text-center">کل امانات</th>
+                                <th class="text-center">امانت فعال</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.TopMembers.Any())
+                            {
+                                int rank = 1;
+                                foreach (var member in Model.TopMembers)
+                                {
+                                    <tr>
+                                        <td class="fw-bold text-muted">@(rank++)</td>
+                                        <td>
+                                            <div class="fw-semibold text-dark">@member.FullName</div>
+                                            <div class="small text-muted font-monospace">کد ملی: @member.NationalCode</div>
+                                        </td>
+                                        <td class="font-monospace small">@member.Phone</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-secondary rounded-pill px-2 py-1">
+                                                @member.TotalLoansCount
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info rounded-pill px-2 py-1">
+                                                @member.ActiveLoansCount
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        داده‌ای برای نمایش وجود ندارد.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Distribution Table -->
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h5 class="card-title fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                <span>🏷️</span>
+                <span>وضعیت مخزن و گردش کتاب‌ها به تفکیک دسته‌بندی موضوعی</span>
+            </h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>نام دسته‌بندی موضوعی</th>
+                        <th class="text-center">تعداد کتاب‌های ثبت‌شده</th>
+                        <th class="text-center">تعداد امانت‌های در دست مطالعه</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.CategoryStats.Any())
+                    {
+                        foreach (var cat in Model.CategoryStats)
+                        {
+                            <tr>
+                                <td class="fw-semibold text-dark">@cat.CategoryName</td>
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark border px-3 py-1">
+                                        @cat.BooksCount عنوان
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1">
+                                        @cat.ActiveLoansCount نسخه در گردش
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center py-3 text-muted">دسته‌بندی یافت نشد.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

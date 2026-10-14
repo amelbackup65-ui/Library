@@ -1,0 +1,200 @@
+@model LibraryManagement.Models.ViewModels.Members.MemberListViewModel
+@{
+    ViewData["Title"] = "مدیریت اعضای کتابخانه";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">فهرست اعضای کتابخانه</h3>
+        <p class="text-muted small mb-0">جستجو بر اساس نام، کدملی و تلفن • ثبت‌نام و مدیریت وضعیت عضویت</p>
+    </div>
+    <div>
+        <a asp-action="Create" class="btn btn-primary d-inline-flex align-items-center gap-2">
+            <span>➕</span> ثبت‌نام عضو جدید
+        </a>
+    </div>
+</div>
+
+<!-- باکس جستجو و فیلتر وضعیت -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-3">
+        <form asp-action="Index" method="get" class="row g-2 align-items-center">
+            <div class="col-md-7">
+                <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control" placeholder="جستجوی نام، نام خانوادگی، کد ملی ۱۰ رقمی یا شماره همراه..." />
+            </div>
+            <div class="col-md-3">
+                <select name="statusFilter" class="form-select">
+                    <option value="" selected="@(string.IsNullOrEmpty(Model.StatusFilter))">همه وضعیت‌ها</option>
+                    <option value="active" selected="@(Model.StatusFilter == "active")">فقط اعضای فعال</option>
+                    <option value="inactive" selected="@(Model.StatusFilter == "inactive")">فقط اعضای غیرفعال</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-dark w-100">جستجو</button>
+                @if (!string.IsNullOrEmpty(Model.SearchTerm) || !string.IsNullOrEmpty(Model.StatusFilter))
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary" title="پاک‌کردن فیلترها">✖</a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- جدول اعضا -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        @if (!Model.Members.Items.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <div class="fs-1 mb-2">🔍</div>
+                <h5>هیچ عضوی با مشخصات واردشده یافت نشد!</h5>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>نام و نام خانوادگی</th>
+                            <th>کد ملی</th>
+                            <th>شماره همراه</th>
+                            <th>تاریخ ثبت‌نام</th>
+                            <th class="text-center">امانت‌های جاری</th>
+                            <th class="text-center">وضعیت</th>
+                            <th class="text-center" style="width: 22%;">عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var member in Model.Members.Items)
+                        {
+                            <tr>
+                                <td class="fw-bold text-dark">
+                                    👤 @member.FullName
+                                </td>
+                                <td class="font-monospace" dir="ltr">@member.NationalCode</td>
+                                <td class="font-monospace" dir="ltr">@member.Phone</td>
+                                <td class="small text-muted">@member.RegisterDate.ToLocalTime().ToString("yyyy/MM/dd")</td>
+                                <td class="text-center">
+                                    @if (member.ActiveLoansCount > 0)
+                                    {
+                                        <span class="badge bg-warning text-dark px-2 py-1">
+                                            @member.ActiveLoansCount کتاب در دست
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">بدون امانت</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (member.IsActive)
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">
+                                            فعال
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1">
+                                            غیرفعال
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="Details" asp-route-id="@member.Id" class="btn btn-outline-info">پروفایل</a>
+                                        <a asp-action="Edit" asp-route-id="@member.Id" class="btn btn-outline-primary">ویرایش</a>
+                                        
+                                        <form asp-action="ToggleStatus" asp-route-id="@member.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-secondary" title="تغییر وضعیت">
+                                                @(member.IsActive ? "غیرفعال‌سازی" : "فعال‌سازی")
+                                            </button>
+                                        </form>
+
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <button type="button" class="btn btn-outline-danger delete-member-btn"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteMemberModal"
+                                                    data-member-id="@member.Id"
+                                                    data-member-name="@member.FullName">
+                                                حذف
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- بخش صفحه‌بندی -->
+            @if (Model.Members.TotalPages > 1)
+            {
+                <div class="d-flex justify-content-between align-items-center p-3 border-top">
+                    <div class="small text-muted">
+                        نمایش صفحه @Model.Members.PageIndex از @Model.Members.TotalPages (مجموعاً @Model.Members.TotalCount عضو)
+                    </div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item @(!Model.Members.HasPreviousPage ? "disabled" : "")">
+                                <a class="page-link" asp-action="Index" 
+                                   asp-route-page="@(Model.Members.PageIndex - 1)" 
+                                   asp-route-searchTerm="@Model.SearchTerm" 
+                                   asp-route-statusFilter="@Model.StatusFilter">قبلی</a>
+                            </li>
+                            @for (int i = 1; i <= Model.Members.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.Members.PageIndex ? "active" : "")">
+                                    <a class="page-link" asp-action="Index" 
+                                       asp-route-page="@i" 
+                                       asp-route-searchTerm="@Model.SearchTerm" 
+                                       asp-route-statusFilter="@Model.StatusFilter">@i</a>
+                                </li>
+                            }
+                            <li class="page-item @(!Model.Members.HasNextPage ? "disabled" : "")">
+                                <a class="page-link" asp-action="Index" 
+                                   asp-route-page="@(Model.Members.PageIndex + 1)" 
+                                   asp-route-searchTerm="@Model.SearchTerm" 
+                                   asp-route-statusFilter="@Model.StatusFilter">بعدی</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<!-- مودال تایید حذف عضو -->
+<div class="modal fade" id="deleteMemberModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">تایید حذف عضو</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="بستن"></button>
+            </div>
+            <div class="modal-body">
+                <p>آیا از حذف پرونده عضویت <strong id="modalMemberName" class="text-danger"></strong> اطمینان دارید؟</p>
+                <div class="alert alert-warning small mb-0">
+                    نکته: در صورتی که این عضو دارای کتاب امانت‌گرفته شده یا دیرکرد باشد، حذف آن توسط سیستم متوقف خواهد شد.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <form id="deleteMemberForm" asp-action="Delete" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="modalMemberId" value="" />
+                    <button type="submit" class="btn btn-danger">بله، حذف شود</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/members.js"></script>
+}

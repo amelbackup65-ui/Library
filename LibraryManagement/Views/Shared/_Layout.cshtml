@@ -1,0 +1,145 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - سامانه مدیریت کتابخانه</title>
+    <!-- Bootstrap 5 RTL -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body class="bg-light">
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="bg-dark text-white p-3 d-flex flex-column" style="width: 260px; min-height: 100vh;">
+            <div class="d-flex align-items-center gap-2 mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+                <span class="fs-4">📚</span>
+                <span class="fs-6 fw-bold">مدیریت کتابخانه</span>
+            </div>
+
+            <ul class="nav nav-pills flex-column mb-auto gap-1">
+                <li class="nav-item">
+                    <a asp-controller="Dashboard" asp-action="Index" class="nav-link text-white d-flex align-items-center gap-2">
+                        <span>📊</span> داشبورد آمار
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Books" asp-action="Index" class="nav-link text-white d-flex align-items-center gap-2">
+                        <span>📖</span> کتاب‌ها
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Loans" asp-action="Index" class="nav-link text-white d-flex align-items-center gap-2">
+                        <span>🔄</span> امانت و بازگشت
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Loans" asp-action="Overdue" class="nav-link text-danger d-flex align-items-center gap-2">
+                        <span>⚠️</span> دیرکردها
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Members" asp-action="Index" class="nav-link text-white d-flex align-items-center gap-2">
+                        <span>👥</span> اعضای کتابخانه
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Authors" asp-action="Index" class="nav-link text-white d-flex align-items-center gap-2">
+                        <span>✍️</span> نویسندگان
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Categories" asp-action="Index" class="nav-link text-white d-flex align-items-center gap-2">
+                        <span>🏷️</span> دسته‌بندی‌ها
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Reports" asp-action="Index" class="nav-link text-white d-flex align-items-center gap-2">
+                        <span>📈</span> گزارشات و تحلیل‌ها
+                    </a>
+                </li>
+            </ul>
+
+            <div class="pt-3 border-top border-secondary border-opacity-25 small text-secondary">
+                نسخه سیستم: ۱.۰.۰ (MVC 8)
+            </div>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <div class="flex-grow-1 d-flex flex-column">
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand navbar-light bg-white border-bottom px-4 py-2 justify-content-between">
+                <div class="navbar-brand fs-6 text-muted mb-0">
+                    سامانه جامع اتوماسیون و گردش کتاب
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        var currentUser = await UserManager.GetUserAsync(User);
+                        var roles = currentUser != null ? await UserManager.GetRolesAsync(currentUser) : new List<string>();
+                        var roleName = roles.FirstOrDefault() ?? "کاربر";
+                        var badgeClass = roleName == "Admin" ? "bg-danger" : "bg-primary";
+
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge @badgeClass rounded-pill">
+                                @(roleName == "Admin" ? "مدیر ارشد" : "کتابدار")
+                            </span>
+                            <span class="small fw-semibold text-dark">
+                                @(currentUser?.FullName ?? User.Identity?.Name)
+                            </span>
+                        </div>
+
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                خروج
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-sm">
+                            ورود به سیستم
+                        </a>
+                    }
+                </div>
+            </nav>
+
+            <!-- Main Content Area -->
+            <main class="container-fluid p-4 flex-grow-1">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                        <strong>موفقیت:</strong> @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="بستن"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                        <strong>خطا:</strong> @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="بستن"></button>
+                    </div>
+                }
+
+                @RenderBody()
+            </main>
+
+            <!-- Footer -->
+            <footer class="bg-white border-top py-2 px-4 text-center small text-muted">
+                سامانه مدیریت کتابخانه • طراحی معماری لایه‌ای تمیز و ماژولار با ASP.NET Core
+            </footer>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

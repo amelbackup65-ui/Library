@@ -1,0 +1,76 @@
+@model IEnumerable<LibraryManagement.Models.ViewModels.Loans.OverdueLoanItemViewModel>
+@{
+    ViewData["Title"] = "کتاب‌های دارای تاخیر در بازگشت (Overdue)";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-danger mb-1">⚠️ امانت‌های دارای دیرکرد (Overdue)</h3>
+        <p class="text-muted small mb-0">فهرست کتاب‌هایی که موعد سررسید آن‌ها گذشته و هنوز به کتابخانه عودت داده نشده‌اند</p>
+    </div>
+    <div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            بازگشت به همه امانت‌ها
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm border-danger border-opacity-25">
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <div class="display-6 text-success mb-2">🎉</div>
+                <h5 class="text-success fw-bold">عالی است! هیچ کتاب دارای دیرکردی در سامانه وجود ندارد.</h5>
+                <p class="small text-muted">تمامی امانت‌های جاری در موعد مقرر تحویل شده یا هنوز موعد سررسیدشان فرا نرسیده است.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-danger bg-opacity-25">
+                        <tr>
+                            <th>عنوان کتاب و شابک</th>
+                            <th>امانت‌گیرنده</th>
+                            <th>شماره تماس</th>
+                            <th>تاریخ امانت</th>
+                            <th>موعد سررسید</th>
+                            <th class="text-center">مدت تاخیر</th>
+                            <th class="text-center">عملیات تسویه</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-dark">@item.BookTitle</div>
+                                    <div class="text-muted font-monospace small" dir="ltr">ISBN: @item.BookISBN</div>
+                                </td>
+                                <td class="fw-semibold">@item.MemberName</td>
+                                <td class="font-monospace" dir="ltr">@item.MemberPhone</td>
+                                <td class="small">@item.LoanDate.ToLocalTime().ToString("yyyy/MM/dd")</td>
+                                <td class="small text-danger fw-bold">@item.DueDate.ToLocalTime().ToString("yyyy/MM/dd")</td>
+                                <td class="text-center">
+                                    <span class="badge bg-danger px-2.5 py-1">
+                                        @item.DaysOverdue روز تاخیر
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <form asp-action="Return" asp-route-id="@item.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="returnUrl" value="/Loans/Overdue" />
+                                        <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('آیا کتاب با موفقیت تحویل گرفته شد؟');">
+                                            تحویل فوری
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

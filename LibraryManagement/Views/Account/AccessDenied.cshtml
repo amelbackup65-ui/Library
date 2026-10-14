@@ -1,0 +1,28 @@
+@{
+    ViewData["Title"] = "عدم دسترسی (403)";
+    Layout = "_Layout";
+}
+
+<div class="container py-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card bg-slate-900 border-danger shadow-lg p-5 rounded-4 text-light">
+                <div class="mb-4 text-danger">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                    </svg>
+                </div>
+                <h2 class="text-danger fw-bold mb-3">دسترسی غیرمجاز (Access Denied)</h2>
+                <p class="text-secondary leading-relaxed mb-4">
+                    شما مجوز لازم برای مشاهده یا انجام این عملیات را ندارید. این بخش صرفاً برای نقش کاربری بالاتر (مانند <strong>مدیر ارشد سامانه - Admin</strong>) تعریف شده است.
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-light px-4">
+                        بازگشت به داشبورد
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

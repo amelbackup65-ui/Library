@@ -1,0 +1,46 @@
+@model LibraryManagement.Models.ViewModels.Categories.CategoryFormViewModel
+@{
+    ViewData["Title"] = "ویرایش دسته‌بندی";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold text-dark mb-1">ویرایش عنوان دسته‌بندی</h3>
+                <p class="text-muted small mb-0">کد شناسایی دسته‌بندی: @Model.Id</p>
+            </div>
+            <div>
+                <a asp-action="Index" class="btn btn-outline-secondary">بازگشت به فهرست</a>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label fw-semibold small"></label>
+                        <input asp-for="Name" class="form-control" required />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label fw-semibold small"></label>
+                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="Index" class="btn btn-light px-4">انصراف</a>
+                        <button type="submit" class="btn btn-primary px-4 fw-semibold">ذخیره تغییرات</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

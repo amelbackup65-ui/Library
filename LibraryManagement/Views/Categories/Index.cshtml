@@ -1,0 +1,119 @@
+@model IEnumerable<LibraryManagement.Models.ViewModels.Categories.CategoryItemViewModel>
+@{
+    ViewData["Title"] = "مدیریت دسته‌بندی‌ها";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">دسته‌بندی‌های موضوعی کاتالوگ</h3>
+        <p class="text-muted small mb-0">مدیریت موضوعات جهت رده‌بندی و تفکیک کتاب‌ها</p>
+    </div>
+    <div>
+        <a asp-action="Create" class="btn btn-primary d-inline-flex align-items-center gap-2">
+            <span>➕</span> ایجاد دسته‌بندی جدید
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <h5>هیچ دسته‌بندی در سیستم تعریف نشده است.</h5>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 25%;">نام موضوع / دسته‌بندی</th>
+                            <th>توضیحات</th>
+                            <th class="text-center" style="width: 15%;">تعداد عناوین کتب</th>
+                            <th class="text-center" style="width: 20%;">عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cat in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-dark">
+                                    🏷️ @cat.Name
+                                </td>
+                                <td>
+                                    <span class="text-muted small">
+                                        @(string.IsNullOrWhiteSpace(cat.Description) ? "—" : cat.Description)
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2.5 py-1">
+                                        @cat.BooksCount کتاب
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="Edit" asp-route-id="@cat.Id" class="btn btn-outline-primary">ویرایش</a>
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <button type="button" class="btn btn-outline-danger delete-cat-btn"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteCatModal"
+                                                    data-cat-id="@cat.Id"
+                                                    data-cat-name="@cat.Name">
+                                                حذف
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- مودال تایید حذف دسته‌بندی -->
+<div class="modal fade" id="deleteCatModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">تایید حذف دسته‌بندی</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="بستن"></button>
+            </div>
+            <div class="modal-body">
+                <p>آیا از حذف دسته‌بندی <strong id="modalCatName" class="text-danger"></strong> اطمینان دارید؟</p>
+                <div class="alert alert-warning small mb-0">
+                    توجه: دسته‌بندی‌هایی که کتابی به آن‌ها اختصاص دارد، امکان حذف ندارند.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <form id="deleteCatForm" asp-action="Delete" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="modalCatId" value="" />
+                    <button type="submit" class="btn btn-danger">بله، حذف شود</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const deleteButtons = document.querySelectorAll('.delete-cat-btn');
+            const modalCatId = document.getElementById('modalCatId');
+            const modalCatName = document.getElementById('modalCatName');
+            deleteButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    modalCatId.value = btn.getAttribute('data-cat-id');
+                    modalCatName.textContent = `«${btn.getAttribute('data-cat-name')}»`;
+                });
+            });
+        });
+    </script>
+}

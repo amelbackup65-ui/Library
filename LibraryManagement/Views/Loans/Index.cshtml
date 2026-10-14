@@ -1,0 +1,266 @@
+@model LibraryManagement.Models.ViewModels.Loans.LoanListViewModel
+@{
+    ViewData["Title"] = "گردش امانت و بازگشت کتاب‌ها";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">سیستم امانت و بازگشت کتاب</h3>
+        <p class="text-muted small mb-0">ثبت گردش امانت، تحویل کتاب به کتابخانه و پیگیری سررسیدها</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Overdue" class="btn btn-outline-danger d-inline-flex align-items-center gap-2">
+            <span>⚠️</span> کتب دارای تاخیر (@Model.OverdueLoansCount)
+        </a>
+        <a asp-action="Create" class="btn btn-primary d-inline-flex align-items-center gap-2">
+            <span>➕</span> ثبت امانت جدید
+        </a>
+    </div>
+</div>
+
+<!-- کارت‌های خلاصه وضعیت -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm p-3 bg-white">
+            <div class="text-muted small mb-1">امانت‌های فعال جاری</div>
+            <div class="h4 fw-bold text-primary mb-0">@Model.ActiveLoansCount</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm p-3 bg-white">
+            <div class="text-muted small mb-1">امانت‌های دارای تاخیر (Overdue)</div>
+            <div class="h4 fw-bold text-danger mb-0">@Model.OverdueLoansCount</div>
+        </div>
+    </div>
+</div>
+
+<!-- فیلتر و جستجو -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-3">
+        <form asp-action="Index" method="get" class="row g-2 align-items-center">
+            <div class="col-md-7">
+                <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control" placeholder="جستجوی عنوان کتاب، شابک، یا نام عضو..." />
+            </div>
+            <div class="col-md-3">
+                <select name="statusFilter" class="form-select">
+                    <option value="" selected="@(string.IsNullOrEmpty(Model.StatusFilter))">همه وضعیت‌ها</option>
+                    <option value="active" selected="@(Model.StatusFilter == "active")">فقط امانت‌های در دست (فعال)</option>
+                    <option value="overdue" selected="@(Model.StatusFilter == "overdue")">فقط موارد دارای دیرکرد</option>
+                    <option value="returned" selected="@(Model.StatusFilter == "returned")">تسویه‌شده‌ها (برگشت داده شده)</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-dark w-100">فیلتر</button>
+                @if (!string.IsNullOrEmpty(Model.SearchTerm) || !string.IsNullOrEmpty(Model.StatusFilter))
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary" title="پاک‌کردن">✖</a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- جدول امانت‌ها -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        @if (!Model.Loans.Items.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <div class="fs-1 mb-2">🔄</div>
+                <h5>هیچ رکورد امانتی یافت نشد.</h5>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 25%;">کتاب</th>
+                            <th style="width: 20%;">امانت‌گیرنده</th>
+                            <th>تاریخ امانت</th>
+                            <th>موعد سررسید</th>
+                            <th class="text-center">وضعیت</th>
+                            <th class="text-center" style="width: 18%;">عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var loan in Model.Loans.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-dark">@loan.BookTitle</div>
+                                    <div class="text-muted small font-monospace" dir="ltr">ISBN: @loan.BookISBN</div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">@loan.MemberName</div>
+                                    <div class="text-muted font-monospace small" dir="ltr">@loan.MemberPhone</div>
+                                </td>
+                                <td class="small">@loan.LoanDate.ToLocalTime().ToString("yyyy/MM/dd")</td>
+                                <td class="small">
+                                    <div class="@(loan.IsOverdue ? "text-danger fw-bold" : "")">
+                                        @loan.DueDate.ToLocalTime().ToString("yyyy/MM/dd")
+                                    </div>
+                                    @if (loan.IsOverdue)
+                                    {
+                                        <div class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25" style="font-size: 10px;">
+                                            @loan.OverdueDays روز تاخیر
+                                        </div>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (loan.Status == LibraryManagement.Models.Entities.LoanStatus.Returned)
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1">
+                                            تحویل شده
+                                        </span>
+                                    }
+                                    else if (loan.IsOverdue)
+                                    {
+                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2.5 py-1">
+                                            دارای دیرکرد
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2.5 py-1 text-dark">
+                                            در دست امانت
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="Details" asp-route-id="@loan.Id" class="btn btn-outline-info">
+                                            رسید
+                                        </a>
+
+                                        @if (loan.Status != LibraryManagement.Models.Entities.LoanStatus.Returned)
+                                        {
+                                            <button type="button" class="btn btn-outline-primary extend-book-btn"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#extendBookModal"
+                                                    data-loan-id="@loan.Id"
+                                                    data-book-title="@loan.BookTitle"
+                                                    data-member-name="@loan.MemberName">
+                                                تمدید
+                                            </button>
+
+                                            <button type="button" class="btn btn-success return-book-btn"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#returnBookModal"
+                                                    data-loan-id="@loan.Id"
+                                                    data-book-title="@loan.BookTitle"
+                                                    data-member-name="@loan.MemberName">
+                                                تحویل
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- پیجینیشن -->
+            @if (Model.Loans.TotalPages > 1)
+            {
+                <div class="d-flex justify-content-between align-items-center p-3 border-top">
+                    <div class="small text-muted">
+                        صفحه @Model.Loans.PageIndex از @Model.Loans.TotalPages (مجموعاً @Model.Loans.TotalCount رکورد)
+                    </div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item @(!Model.Loans.HasPreviousPage ? "disabled" : "")">
+                                <a class="page-link" asp-action="Index" 
+                                   asp-route-page="@(Model.Loans.PageIndex - 1)" 
+                                   asp-route-searchTerm="@Model.SearchTerm" 
+                                   asp-route-statusFilter="@Model.StatusFilter">قبلی</a>
+                            </li>
+                            @for (int i = 1; i <= Model.Loans.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.Loans.PageIndex ? "active" : "")">
+                                    <a class="page-link" asp-action="Index" 
+                                       asp-route-page="@i" 
+                                       asp-route-searchTerm="@Model.SearchTerm" 
+                                       asp-route-statusFilter="@Model.StatusFilter">@i</a>
+                                </li>
+                            }
+                            <li class="page-item @(!Model.Loans.HasNextPage ? "disabled" : "")">
+                                <a class="page-link" asp-action="Index" 
+                                   asp-route-page="@(Model.Loans.PageIndex + 1)" 
+                                   asp-route-searchTerm="@Model.SearchTerm" 
+                                   asp-route-statusFilter="@Model.StatusFilter">بعدی</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<!-- مودال تمدید امانت -->
+<div class="modal fade" id="extendBookModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">تمدید مهلت امانت کتاب</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="بستن"></button>
+            </div>
+            <form id="extendBookForm" asp-action="Extend" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="extendLoanId" value="" />
+                <div class="modal-body">
+                    <p>تمدید مهلت امانت کتاب <strong id="extendBookTitle" class="text-primary"></strong> امانت‌گرفته‌شده توسط <strong id="extendMemberName"></strong>:</p>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">مدت تمدید (روز):</label>
+                        <select name="days" class="form-select">
+                            <option value="7" selected>۷ روز بیشتر (۱ هفته)</option>
+                            <option value="14">۱۴ روز بیشتر (۲ هفته)</option>
+                            <option value="21">۲۱ روز بیشتر (۳ هفته)</option>
+                            <option value="30">۳۰ روز بیشتر (یک ماه)</option>
+                        </select>
+                    </div>
+                    <div class="alert alert-info small mb-0">
+                        در صورت تمدید، موعد سررسید به میزان روزهای انتخابی از تاریخ فعلی سررسید به جلو منتقل می‌شود.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                    <button type="submit" class="btn btn-primary">ثبت تمدید مهلت</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- مودال ثبت بازگشت کتاب -->
+<div class="modal fade" id="returnBookModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">تایید بازگشت و تحویل کتاب</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="بستن"></button>
+            </div>
+            <div class="modal-body">
+                <p>آیا کتاب <strong id="returnBookTitle" class="text-primary"></strong> توسط عضو <strong id="returnMemberName"></strong> به مخزن تحویل داده شد؟</p>
+                <div class="alert alert-info small mb-0">
+                    با تایید این عملیات، یک واحد به موجودی در دسترس کتاب اضافه شده و وضعیت امانت به «تحویل شده» تغییر خواهد یافت.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <form id="returnBookForm" asp-action="Return" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="returnLoanId" value="" />
+                    <button type="submit" class="btn btn-success">تایید و بازگشت به قفسه</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/loans.js"></script>
+}

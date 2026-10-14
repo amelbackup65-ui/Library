@@ -1,0 +1,90 @@
+@model LibraryManagement.Models.ViewModels.Authors.AuthorDetailsViewModel
+@{
+    ViewData["Title"] = "مشخصات نویسنده - " + Model.FullName;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">شناسنامه نویسنده</h3>
+        <p class="text-muted small mb-0">کد نویسنده در سامانه: @Model.Id</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">ویرایش</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">بازگشت به فهرست</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="display-6">✍️</div>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0">@Model.FullName</h4>
+                        <span class="text-muted small">پدیدآورنده اثر</span>
+                    </div>
+                </div>
+                <div class="border-top pt-3">
+                    <h6 class="fw-bold text-secondary small mb-2">زندگی‌نامه و سوابق:</h6>
+                    <p class="text-muted small leading-relaxed">
+                        @(string.IsNullOrWhiteSpace(Model.Biography) ? "سوابقی ثبت نشده است." : Model.Biography)
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0 text-dark">کتاب‌های تالیف شده در این کتابخانه</h6>
+                <span class="badge bg-primary bg-opacity-10 text-primary">@Model.Books.Count اثر</span>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.Books.Any())
+                {
+                    <div class="p-4 text-center text-muted small">
+                        هنوز کتابی به این نویسنده متصل نشده است.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light small">
+                                <tr>
+                                    <th>عنوان کتاب</th>
+                                    <th>شابک</th>
+                                    <th>سال نشر</th>
+                                    <th class="text-center">موجودی قفسه</th>
+                                    <th class="text-center">عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="small">
+                                @foreach (var book in Model.Books)
+                                {
+                                    <tr>
+                                        <td class="fw-bold text-dark">@book.Title</td>
+                                        <td class="font-monospace text-muted" dir="ltr">@book.ISBN</td>
+                                        <td>@book.PublishYear</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success bg-opacity-10 text-success">
+                                                @book.AvailableCopies نسخه
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <a asp-controller="Books" asp-action="Details" asp-route-id="@book.Id" class="btn btn-outline-info btn-sm">
+                                                مشاهده کتاب
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

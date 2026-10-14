@@ -1,0 +1,6 @@
+{
+  "name": "Library Management System",
+  "description": "Enterprise ASP.NET Core MVC Library Management System Architecture & Implementation",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

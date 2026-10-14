@@ -1,0 +1,94 @@
+@model LibraryManagement.Models.ViewModels.Loans.LoanCreateViewModel
+@{
+    ViewData["Title"] = "ثبت امانت جدید کتاب";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold text-dark mb-1">ثبت امانت جدید</h3>
+                <p class="text-muted small mb-0">انتخاب عضو و تخصیص کتاب از میان نسخه‌های موجود در مخزن</p>
+            </div>
+            <div>
+                <a asp-action="Index" class="btn btn-outline-secondary">بازگشت به فهرست</a>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post" id="loanCreateForm">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="MemberId" class="form-label fw-semibold small"></label>
+                        <select asp-for="MemberId" asp-items="Model.ActiveMemberList" class="form-select" required autofocus>
+                            <option value="">-- انتخاب عضو امانت‌گیرنده (اعضای فعال) --</option>
+                        </select>
+                        <span asp-validation-for="MemberId" class="text-danger small"></span>
+                        <div class="form-text small text-muted">تنها اعضایی که وضعیت عضویت فعال دارند در این لیست قرار دارند.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="BookId" class="form-label fw-semibold small"></label>
+                        <select asp-for="BookId" asp-items="Model.AvailableBookList" class="form-select" required>
+                            <option value="">-- انتخاب کتاب (کتاب‌های دارای نسخه موجود در قفسه) --</option>
+                        </select>
+                        <span asp-validation-for="BookId" class="text-danger small"></span>
+                        <div class="form-text small text-muted">کتاب‌هایی که تمام نسخه‌های آن‌ها به امانت رفته باشند در این لیست نمایش داده نمی‌شوند.</div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="LoanDays" class="form-label fw-semibold small"></label>
+                            <input asp-for="LoanDays" id="loanDaysInput" type="number" class="form-control" min="1" max="90" required />
+                            <span asp-validation-for="LoanDays" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-muted">تاریخ تقریبی سررسید (محاسبه خودکار):</label>
+                            <div class="p-2 bg-light border rounded text-dark fw-bold" id="calculatedDueDate">
+                                محاسبه با تعداد روزهای انتخابی...
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Notes" class="form-label fw-semibold small"></label>
+                        <textarea asp-for="Notes" class="form-control" rows="2" placeholder="توضیحات تکمیلی پیرامون وضعیت فیزیکی کتاب هنگام تحویل..."></textarea>
+                        <span asp-validation-for="Notes" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="Index" class="btn btn-light px-4">انصراف</a>
+                        <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                            تایید و ثبت نهایی امانت
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const daysInput = document.getElementById('loanDaysInput');
+            const previewEl = document.getElementById('calculatedDueDate');
+
+            function updatePreview() {
+                const days = parseInt(daysInput.value) || 14;
+                const d = new Date();
+                d.setDate(d.getDate() + days);
+                previewEl.textContent = `${days} روز بعد (تقریباً: ${d.toLocaleDateString('fa-IR')})`;
+            }
+
+            if (daysInput && previewEl) {
+                daysInput.addEventListener('input', updatePreview);
+                updatePreview();
+            }
+        });
+    </script>
+}

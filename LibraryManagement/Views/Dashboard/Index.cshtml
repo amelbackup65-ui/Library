@@ -1,0 +1,221 @@
+@model LibraryManagement.Services.Interfaces.DashboardStats
+@{
+    ViewData["Title"] = "داشبورد مدیریت و آمار کتابخانه";
+}
+
+<div class="container-fluid py-2">
+    <!-- Header Section -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 fw-bold text-dark mb-1">داشبورد مدیریت و گردش کتاب</h1>
+            <p class="text-muted small mb-0">خلاصه وضعیت موجودی مخزن کتاب، اعضای فعال و گردش امانات</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-controller="Loans" asp-action="Create" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm">
+                <span>➕</span>
+                <span>ثبت امانت جدید</span>
+            </a>
+            <a asp-controller="Members" asp-action="Create" class="btn btn-outline-primary d-flex align-items-center gap-1">
+                <span>👤</span>
+                <span>عضو جدید</span>
+            </a>
+            <a asp-controller="Books" asp-action="Create" class="btn btn-outline-secondary d-flex align-items-center gap-1">
+                <span>📖</span>
+                <span>کتاب جدید</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert Banner for Overdue Loans -->
+    @if (Model.OverdueLoans > 0)
+    {
+        <div class="alert alert-warning border-0 shadow-sm rounded-3 d-flex align-items-center justify-content-between mb-4">
+            <div class="d-flex align-items-center gap-2">
+                <span class="fs-4">⚠️</span>
+                <div>
+                    <strong class="d-block">هشدار تاخیر در بازگشت کتاب!</strong>
+                    <span class="small text-muted">تعداد <strong>@Model.OverdueLoans</strong> مورد امانت از موعد مقرر گذشته و هنوز تحویل داده نشده است.</span>
+                </div>
+            </div>
+            <a asp-controller="Loans" asp-action="Overdue" class="btn btn-warning btn-sm fw-semibold">
+                مشاهده لیست دیرکردها
+            </a>
+        </div>
+    }
+
+    <!-- Stat Cards (KPIs) -->
+    <div class="row g-3 mb-4">
+        <!-- Total Books -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-3 h-100 p-3 bg-white">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-medium">عناوین کتاب‌ها</span>
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 text-primary">
+                        <span class="fs-5">📚</span>
+                    </div>
+                </div>
+                <div class="fs-2 fw-bold text-dark">@Model.TotalBooks.ToString("N0")</div>
+                <div class="small text-muted mt-1">
+                    کل موجودی فیزیکی: <strong class="text-dark">@Model.TotalCopies.ToString("N0")</strong> نسخه
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Copies -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-3 h-100 p-3 bg-white">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-medium">نسخه‌های آماده امانت</span>
+                    <div class="rounded-circle bg-success bg-opacity-10 p-2 text-success">
+                        <span class="fs-5">✅</span>
+                    </div>
+                </div>
+                <div class="fs-2 fw-bold text-success">@Model.AvailableCopies.ToString("N0")</div>
+                <div class="small text-muted mt-1">
+                    در قفسه‌های کتابخانه و در دسترس
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Loans -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-3 h-100 p-3 bg-white">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-medium">امانت‌های جاری</span>
+                    <div class="rounded-circle bg-info bg-opacity-10 p-2 text-info">
+                        <span class="fs-5">🔄</span>
+                    </div>
+                </div>
+                <div class="fs-2 fw-bold text-info">@Model.ActiveLoans.ToString("N0")</div>
+                <div class="small text-muted mt-1">
+                    کتاب‌های در اختیار اعضای محترم
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Members -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-3 h-100 p-3 bg-white">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-medium">کل اعضای ثبت‌شده</span>
+                    <div class="rounded-circle bg-secondary bg-opacity-10 p-2 text-secondary">
+                        <span class="fs-5">👥</span>
+                    </div>
+                </div>
+                <div class="fs-2 fw-bold text-dark">@Model.TotalMembers.ToString("N0")</div>
+                <div class="small text-muted mt-1">
+                    اعضای ثبت‌نام شده با کارت عضویت
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Operations and Recent Loans Table -->
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="card-title fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                <span>📋</span>
+                <span>آخرین گردش‌های امانت ثبت شده</span>
+            </h5>
+            <a asp-controller="Loans" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                مشاهده همه امانات &larr;
+            </a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center" style="width: 60px;">#</th>
+                        <th>کتاب</th>
+                        <th>عضو امانت‌گیرنده</th>
+                        <th>تاریخ امانت</th>
+                        <th>مهلت بازگشت</th>
+                        <th class="text-center">وضعیت</th>
+                        <th class="text-center" style="width: 140px;">عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.RecentLoans != null && Model.RecentLoans.Any())
+                    {
+                        @foreach (var loan in Model.RecentLoans)
+                        {
+                            var isOverdue = loan.Status == LoanStatus.Overdue || (loan.Status == LoanStatus.Active && loan.DueDate < DateTime.UtcNow && loan.ReturnDate == null);
+                            <tr>
+                                <td class="text-center text-muted small">@loan.Id</td>
+                                <td>
+                                    <div class="fw-semibold text-dark">@loan.Book?.Title</div>
+                                    <div class="small text-muted font-monospace">شابک: @(loan.Book?.ISBN ?? "-")</div>
+                                </td>
+                                <td>
+                                    <div class="fw-medium text-dark">@loan.Member?.FirstName @loan.Member?.LastName</div>
+                                    <div class="small text-muted">تلفن: @(loan.Member?.Phone ?? "-")</div>
+                                </td>
+                                <td>
+                                    <div class="small text-dark">@loan.LoanDate.ToLocalTime().ToString("yyyy/MM/dd")</div>
+                                    <div class="text-muted smaller">ساعت @loan.LoanDate.ToLocalTime().ToString("HH:mm")</div>
+                                </td>
+                                <td>
+                                    <div class="small @(isOverdue ? "text-danger fw-bold" : "text-dark")">
+                                        @loan.DueDate.ToLocalTime().ToString("yyyy/MM/dd")
+                                    </div>
+                                    @if (isOverdue)
+                                    {
+                                        <div class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                                            @((int)(DateTime.UtcNow - loan.DueDate).TotalDays) روز دیرکرد
+                                        </div>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (loan.Status == LoanStatus.Returned)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                                            مسترد شده
+                                        </span>
+                                    }
+                                    else if (isOverdue)
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">
+                                            دارای تاخیر
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                                            در دست عضو
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <a asp-controller="Loans" asp-action="Details" asp-route-id="@loan.Id" class="btn btn-outline-secondary btn-sm" title="جزئیات">
+                                            جزئیات
+                                        </a>
+                                        @if (loan.Status != LoanStatus.Returned)
+                                        {
+                                            <form asp-controller="Loans" asp-action="Return" method="post" class="d-inline" onsubmit="return confirm('آیا از ثبت تحویل و بازگشت این کتاب به مخزن اطمینان دارید؟');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@loan.Id" />
+                                                <input type="hidden" name="returnUrl" value="@Url.Action("Index", "Dashboard")" />
+                                                <button type="submit" class="btn btn-success btn-sm" title="ثبت بازگشت کتاب">
+                                                    تحویل
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                هیچ گردشی در سامانه یافت نشد. می‌توانید با دکمه «ثبت امانت جدید» اولین مورد را ثبت کنید.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,52 @@
+@model LibraryManagement.Models.ViewModels.Authors.AuthorFormViewModel
+@{
+    ViewData["Title"] = "ثبت نویسنده جدید";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold text-dark mb-1">ثبت نویسنده جدید</h3>
+                <p class="text-muted small mb-0">اطلاعات هویتی و زندگی‌نامه نویسنده را وارد نمایید</p>
+            </div>
+            <div>
+                <a asp-action="Index" class="btn btn-outline-secondary">بازگشت به فهرست</a>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="FirstName" class="form-label fw-semibold small"></label>
+                            <input asp-for="FirstName" class="form-control" placeholder="مثال: جلال" required autofocus />
+                            <span asp-validation-for="FirstName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="LastName" class="form-label fw-semibold small"></label>
+                            <input asp-for="LastName" class="form-control" placeholder="مثال: آل احمد" required />
+                            <span asp-validation-for="LastName" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Biography" class="form-label fw-semibold small"></label>
+                        <textarea asp-for="Biography" class="form-control" rows="4" placeholder="شرح مختصری از سوابق علمی، ادبی و تالیفات..."></textarea>
+                        <span asp-validation-for="Biography" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="Index" class="btn btn-light px-4">انصراف</a>
+                        <button type="submit" class="btn btn-primary px-4 fw-semibold">ثبت نویسنده</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
